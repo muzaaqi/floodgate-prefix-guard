@@ -1,0 +1,7 @@
+name: FloodgatePrefixGuard
+version: 1.0.0
+main: me.muzone.floodgateprefixguard.FloodgatePrefixGuard
+api: "1.20"
+author: Muzone
+description: Prevent Bedrock players from joining without Floodgate prefix
+depend: [floodgate]
