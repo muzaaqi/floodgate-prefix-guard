@@ -1,0 +1,18 @@
+# Konfigurasi FloodgatePrefixGuard
+
+# Prefix yang wajib dimiliki oleh pemain Bedrock (biasanya ".")
+required-prefix: "."
+
+# [FITUR BARU] Whitelist Mode / Linked Account Bypass
+# Jika true: Pemain Bedrock yang sudah LINK akun ke Java (Global Linking) BOLEH masuk
+# meskipun nama mereka tidak ada prefix "." (Karena UUID mereka sudah aman/sama dengan Java)
+allow-linked-bypass: true
+
+# Pesan Kick (Support warna &)
+kick-message:
+  - "&c&l[Guard] Your Bedrock ID is missing the required name prefix!"
+  - ""
+  - "&7S."
+  - "&7For data security (UUID), the connection has been terminated."
+  - ""
+  - "&ePlease relogin to the server."

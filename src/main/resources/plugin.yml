@@ -1,7 +1,19 @@
 name: FloodgatePrefixGuard
-version: 1.0.0
+version: 1.1.0
 main: me.muzone.floodgateprefixguard.FloodgatePrefixGuard
-api: "1.20"
+api-version: 1.20
 author: Muzone
-description: Prevent Bedrock players from joining without Floodgate prefix
 depend: [floodgate]
+description: Protects Bedrock players from UUID desync.
+
+commands:
+  floodgateprefixguard:
+    description: Main command for FPG
+    aliases: [fpg]
+    usage: /fpg reload
+    permission: fpg.admin
+
+permissions:
+  fpg.admin:
+    description: Allows reloading the config
+    default: op
