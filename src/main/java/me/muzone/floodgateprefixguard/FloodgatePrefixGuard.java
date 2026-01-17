@@ -23,7 +23,7 @@ public final class FloodgatePrefixGuard extends JavaPlugin implements Listener {
         getLogger().info("FloodgatePrefixGuard enabled.");
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPreLogin(AsyncPlayerPreLoginEvent event) {
         FloodgateApi api = FloodgateApi.getInstance();
 
