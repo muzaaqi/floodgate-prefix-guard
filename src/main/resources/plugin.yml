@@ -1,5 +1,5 @@
 name: FloodgatePrefixGuard
-version: 1.1.0
+version: 1.2.0
 main: me.muzone.floodgateprefixguard.FloodgatePrefixGuard
 api-version: 1.20
 author: Muzone
@@ -16,4 +16,7 @@ commands:
 permissions:
   fpg.admin:
     description: Allows reloading the config
+    default: op
+  fpg.notify:
+    description: Receives notification when a player is kicked by FPG
     default: op

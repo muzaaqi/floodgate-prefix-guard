@@ -8,6 +8,11 @@ required-prefix: "."
 # meskipun nama mereka tidak ada prefix "." (Karena UUID mereka sudah aman/sama dengan Java)
 allow-linked-bypass: true
 
+# Jika true: Mengirim pesan chat ke admin yang sedang online saat ada pemain Bedrock ditendang.
+staff-notify: true
+# Format pesan notifikasi (%player% akan diganti dengan nama pemain)
+staff-notify-message: "&c[Guard] &e%player% &7kicked for missing prefix."
+
 # Pesan Kick (Support warna &)
 kick-message:
   - "&c&l[Guard] Your Bedrock ID is missing the required name prefix!"
