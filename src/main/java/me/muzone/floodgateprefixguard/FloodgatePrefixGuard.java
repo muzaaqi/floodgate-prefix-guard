@@ -32,7 +32,7 @@ public final class FloodgatePrefixGuard extends JavaPlugin implements Listener, 
             return;
         }
 
-        saveDefaultConfig();
+        new ConfigManager(this).setupConfig();
 
         getCommand("floodgateprefixguard").setExecutor(this);
         getServer().getPluginManager().registerEvents(this, this);

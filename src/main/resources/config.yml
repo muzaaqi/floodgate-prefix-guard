@@ -1,4 +1,5 @@
 # Konfigurasi FloodgatePrefixGuard
+config-version: 1
 
 # Jika true: Plugin akan otomatis mengunduh versi terbaru dari GitHub dan memasangnya saat restart.
 # Jika false: Hanya memberi notifikasi di console jika ada update baru.
