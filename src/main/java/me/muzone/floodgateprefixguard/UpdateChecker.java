@@ -48,7 +48,7 @@ public class UpdateChecker {
                     }
                 }
             } catch (Exception e) {
-                plugin.getLogger().warning("Gagal mengecek update: " + e.getMessage());
+                plugin.getLogger().warning("Failed to check for updates: " + e.getMessage());
             }
         });
     }
@@ -56,7 +56,7 @@ public class UpdateChecker {
     public void download(String version) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                plugin.getLogger().info("Memulai proses download update v" + version + "...");
+                plugin.getLogger().info("Starting download of update v" + version + "...");
 
                 String fileName = plugin.getName() + "-" + version + ".jar";
                 URL downloadUrl = new URL("https://github.com/" + githubRepo + "/releases/download/v" + version + "/" + fileName);
@@ -73,12 +73,12 @@ public class UpdateChecker {
                     fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
                 }
 
-                plugin.getLogger().info("Update v" + version + " berhasil diunduh!");
-                plugin.getLogger().info("Update akan terpasang otomatis saat restart server berikutnya.");
+                plugin.getLogger().info("Update v" + version + " downloaded!");
+                plugin.getLogger().info("Update will be applied automatically on the next server restart.");
                 
             } catch (IOException e) {
-                plugin.getLogger().severe("Gagal mengunduh update: " + e.getMessage());
-                plugin.getLogger().severe("Silakan download manual di: https://github.com/" + githubRepo + "/releases");
+                plugin.getLogger().severe("Failed to download update: " + e.getMessage());
+                plugin.getLogger().severe("Please download manually at: https://github.com/" + githubRepo + "/releases");
             }
         });
     }

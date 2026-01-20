@@ -7,7 +7,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.floodgate.api.FloodgateApi;
 import org.geysermc.floodgate.api.player.FloodgatePlayer;
@@ -27,7 +27,7 @@ public final class FloodgatePrefixGuard extends JavaPlugin implements Listener, 
     @Override
     public void onEnable() {
         if (getServer().getPluginManager().getPlugin("Floodgate") == null) {
-            getLogger().severe(ANSI_RED + "Floodgate not found! Disabling plugin." + ANSI_RESET);
+            getLogger().severe("Floodgate not found! Disabling plugin.");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
@@ -89,7 +89,7 @@ public final class FloodgatePrefixGuard extends JavaPlugin implements Listener, 
                 sender.sendMessage(ChatColor.RED + "You do not have permission.");
                 return true;
             }
-            
+            new ConfigManager(this).setupConfig();
             reloadConfig();
             sender.sendMessage(ChatColor.GREEN + "[FloodgatePrefixGuard] Configuration reloaded!");
             return true;
@@ -98,43 +98,41 @@ public final class FloodgatePrefixGuard extends JavaPlugin implements Listener, 
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPreLogin(AsyncPlayerPreLoginEvent event) {
+    public void onPreLogin(PlayerPreLoginEvent event) {
         FloodgateApi api = FloodgateApi.getInstance();
-        UUID uuid = event.getUniqueId();
-        String username = event.getName();
+        UUID uuid = event.getPlayer().getUniqueId();
+        String username = event.getPlayer().getName();
 
         FloodgatePlayer fPlayer = api.getPlayer(uuid);
-        
+
         if (fPlayer == null) {
             getLogger().info("[Log] Login Java: " + username + " (UUID: " + uuid + ")");
-            return;
+            return; 
         }
 
         if (getConfig().getBoolean("allow-linked-bypass") && fPlayer.getLinkedPlayer() != null) {
-            getLogger().info("[Log] Login Bedrock (Linked): " + username + " -> Terhubung ke akun Java (Bypass Check).");
+            getLogger().info("[Log] Login Bedrock (Linked): " + username + " -> Bypass Check.");
             return;
         }
 
         String requiredPrefix = getConfig().getString("required-prefix", ".");
 
         if (username.startsWith(requiredPrefix)) {
-            getLogger().info("[Log] Login Bedrock (Valid): " + username + " -> Prefix sesuai.");
+            getLogger().info("[Log] Login Bedrock (Valid): " + username + " -> Safe prefix.");
         } else {
-
-            getLogger().warning("[BLOCK] Login Bedrock (Invalid): " + username + " -> Prefix hilang! Menendang pemain...");
+            getLogger().warning("[BLOCK] Login Bedrock (Invalid): " + username + " -> Missing prefix! Kicking player...");
 
             List<String> msgList = getConfig().getStringList("kick-message");
             String kickReason = msgList.stream()
                     .map(line -> ChatColor.translateAlternateColorCodes('&', line))
                     .collect(Collectors.joining("\n"));
 
-            event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, kickReason);
+            event.disallow(PlayerLoginEvent.Result.KICK_OTHER, kickReason);
 
             if (getConfig().getBoolean("staff-notify")) {
                 String notifyMsg = ChatColor.translateAlternateColorCodes('&', 
                     getConfig().getString("staff-notify-message", "&c[Guard] %player% kicked.")
                     .replace("%player%", username));
-                
                 getServer().broadcast(notifyMsg, "fpg.notify");
             }
         }
