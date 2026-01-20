@@ -104,31 +104,38 @@ public final class FloodgatePrefixGuard extends JavaPlugin implements Listener, 
         String username = event.getName();
 
         FloodgatePlayer fPlayer = api.getPlayer(uuid);
+        
+        if (fPlayer == null) {
+            getLogger().info("[Log] Login Java: " + username + " (UUID: " + uuid + ")");
+            return;
+        }
 
-        if (fPlayer != null) {
-            if (getConfig().getBoolean("allow-linked-bypass") && fPlayer.getLinkedPlayer() != null) {
-                return; 
-            }
+        if (getConfig().getBoolean("allow-linked-bypass") && fPlayer.getLinkedPlayer() != null) {
+            getLogger().info("[Log] Login Bedrock (Linked): " + username + " -> Terhubung ke akun Java (Bypass Check).");
+            return;
+        }
 
-            String requiredPrefix = getConfig().getString("required-prefix", ".");
+        String requiredPrefix = getConfig().getString("required-prefix", ".");
 
-            if (!username.startsWith(requiredPrefix)) {
+        if (username.startsWith(requiredPrefix)) {
+            getLogger().info("[Log] Login Bedrock (Valid): " + username + " -> Prefix sesuai.");
+        } else {
+
+            getLogger().warning("[BLOCK] Login Bedrock (Invalid): " + username + " -> Prefix hilang! Menendang pemain...");
+
+            List<String> msgList = getConfig().getStringList("kick-message");
+            String kickReason = msgList.stream()
+                    .map(line -> ChatColor.translateAlternateColorCodes('&', line))
+                    .collect(Collectors.joining("\n"));
+
+            event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, kickReason);
+
+            if (getConfig().getBoolean("staff-notify")) {
+                String notifyMsg = ChatColor.translateAlternateColorCodes('&', 
+                    getConfig().getString("staff-notify-message", "&c[Guard] %player% kicked.")
+                    .replace("%player%", username));
                 
-                List<String> msgList = getConfig().getStringList("kick-message");
-                String kickReason = msgList.stream()
-                        .map(line -> ChatColor.translateAlternateColorCodes('&', line))
-                        .collect(Collectors.joining("\n"));
-
-                event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, kickReason);
-                getLogger().warning("Blocked Bedrock player " + username + " (Missing Prefix).");
-
-                if (getConfig().getBoolean("staff-notify")) {
-                    String notifyMsg = ChatColor.translateAlternateColorCodes('&', 
-                        getConfig().getString("staff-notify-message", "&c[Guard] %player% kicked.")
-                        .replace("%player%", username));
-                    
-                    getServer().broadcast(notifyMsg, "fpg.notify");
-                }
+                getServer().broadcast(notifyMsg, "fpg.notify");
             }
         }
     }
