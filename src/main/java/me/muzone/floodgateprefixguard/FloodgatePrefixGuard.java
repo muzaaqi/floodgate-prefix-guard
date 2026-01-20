@@ -11,6 +11,7 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.floodgate.api.FloodgateApi;
 import org.geysermc.floodgate.api.player.FloodgatePlayer;
+import org.geysermc.geyser.api.GeyserApi;
 
 import java.util.List;
 import java.util.UUID;
@@ -32,6 +33,12 @@ public final class FloodgatePrefixGuard extends JavaPlugin implements Listener, 
             return;
         }
 
+        if (getServer().getPluginManager().getPlugin("Geyser-Spigot") == null) {
+            getLogger().severe("Geyser-Spigot not found! This plugin requires Geyser to function correctly.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
         new ConfigManager(this).setupConfig();
 
         getCommand("floodgateprefixguard").setExecutor(this);
@@ -42,24 +49,18 @@ public final class FloodgatePrefixGuard extends JavaPlugin implements Listener, 
         printStartupBanner();
 
         new UpdateChecker(this, "muzaaqi/floodgate-prefix-guard").check(newVersion -> {
-            
             String currentVersion = getDescription().getVersion();
-            
             if (!currentVersion.equalsIgnoreCase(newVersion)) {
-                
                 getLogger().info(ANSI_YELLOW + "----------------------------------------" + ANSI_RESET);
                 getLogger().info(ANSI_YELLOW + " UPDATE AVAILABLE: v" + newVersion + ANSI_RESET);
                 
                 if (getConfig().getBoolean("auto-update")) {
                     getLogger().info(ANSI_GREEN + " Auto-Update enabled. Downloading update..." + ANSI_RESET);
-                    
                     new UpdateChecker(this, "muzaaqi/floodgate-prefix-guard").download(newVersion);
-                    
                 } else {
                     getLogger().info(ANSI_CYAN + " Manual Download: https://github.com/muzaaqi/floodgate-prefix-guard/releases" + ANSI_RESET);
                     getLogger().info(ANSI_CYAN + " Set 'auto-update: true' in config for automatic updates." + ANSI_RESET);
                 }
-                
                 getLogger().info(ANSI_YELLOW + "----------------------------------------" + ANSI_RESET);
             }
         });
@@ -104,13 +105,24 @@ public final class FloodgatePrefixGuard extends JavaPlugin implements Listener, 
         String username = event.getPlayer().getName();
 
         FloodgatePlayer fPlayer = api.getPlayer(uuid);
+        boolean isBedrock = (fPlayer != null);
 
-        if (fPlayer == null) {
-            getLogger().info("[Log] Login Java: " + username + " (UUID: " + uuid + ")");
-            return; 
+        if (!isBedrock) {
+            try {
+                if (GeyserApi.api().isBedrockPlayer(uuid)) {
+                    isBedrock = true;
+                    getLogger().warning("[Audit] Player " + username + " detected via Geyser API (Floodgate sync failed).");
+                }
+            } catch (Exception e) {
+            }
         }
 
-        if (getConfig().getBoolean("allow-linked-bypass") && fPlayer.getLinkedPlayer() != null) {
+        if (!isBedrock) {
+            getLogger().info("[Log] Login Java: " + username + " (UUID: " + uuid + ")");
+            return;
+        }
+
+        if (fPlayer != null && getConfig().getBoolean("allow-linked-bypass") && fPlayer.getLinkedPlayer() != null) {
             getLogger().info("[Log] Login Bedrock (Linked): " + username + " -> Bypass Check.");
             return;
         }
