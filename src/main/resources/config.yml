@@ -1,5 +1,9 @@
 # Konfigurasi FloodgatePrefixGuard
 
+# Jika true: Plugin akan otomatis mengunduh versi terbaru dari GitHub dan memasangnya saat restart.
+# Jika false: Hanya memberi notifikasi di console jika ada update baru.
+auto-update: true
+
 # Prefix yang wajib dimiliki oleh pemain Bedrock (biasanya ".")
 required-prefix: "."
 

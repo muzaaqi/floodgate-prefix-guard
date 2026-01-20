@@ -41,16 +41,26 @@ public final class FloodgatePrefixGuard extends JavaPlugin implements Listener, 
 
         printStartupBanner();
 
-        new UpdateChecker(this, "muzaaqi/floodgate-prefix-guard").getVersion(version -> {
-            if (!this.getDescription().getVersion().equals(version)) {
-                getLogger().info(ANSI_YELLOW + "------------------------------------" + ANSI_RESET);
-                getLogger().info(ANSI_YELLOW + "UPDATE AVAILABLE!" + ANSI_RESET);
-                getLogger().info(ANSI_YELLOW + "Current version: " + this.getDescription().getVersion() + ANSI_RESET);
-                getLogger().info(ANSI_YELLOW + "New version: " + version + ANSI_RESET);
-                getLogger().info(ANSI_YELLOW + "Download: https://github.com/muzaaqi/floodgate-prefix-guard/releases" + ANSI_RESET);
-                getLogger().info(ANSI_YELLOW + "------------------------------------" + ANSI_RESET);
-            } else {
-                getLogger().info(ANSI_GREEN + "You are running the latest version." + ANSI_RESET);
+        new UpdateChecker(this, "muzaaqi/floodgate-prefix-guard").check(newVersion -> {
+            
+            String currentVersion = getDescription().getVersion();
+            
+            if (!currentVersion.equalsIgnoreCase(newVersion)) {
+                
+                getLogger().info(ANSI_YELLOW + "----------------------------------------" + ANSI_RESET);
+                getLogger().info(ANSI_YELLOW + " UPDATE AVAILABLE: v" + newVersion + ANSI_RESET);
+                
+                if (getConfig().getBoolean("auto-update")) {
+                    getLogger().info(ANSI_GREEN + " Auto-Update enabled. Downloading update..." + ANSI_RESET);
+                    
+                    new UpdateChecker(this, "muzaaqi/floodgate-prefix-guard").download(newVersion);
+                    
+                } else {
+                    getLogger().info(ANSI_CYAN + " Manual Download: https://github.com/muzaaqi/floodgate-prefix-guard/releases" + ANSI_RESET);
+                    getLogger().info(ANSI_CYAN + " Set 'auto-update: true' in config for automatic updates." + ANSI_RESET);
+                }
+                
+                getLogger().info(ANSI_YELLOW + "----------------------------------------" + ANSI_RESET);
             }
         });
     }
