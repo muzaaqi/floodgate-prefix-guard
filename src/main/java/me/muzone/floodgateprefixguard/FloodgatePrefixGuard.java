@@ -18,10 +18,16 @@ import java.util.stream.Collectors;
 
 public final class FloodgatePrefixGuard extends JavaPlugin implements Listener, CommandExecutor {
 
+    public static final String ANSI_RESET = "\u001B[0m";
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_YELLOW = "\u001B[33m";
+    public static final String ANSI_CYAN = "\u001B[36m";
+    public static final String ANSI_RED = "\u001B[31m";
+
     @Override
     public void onEnable() {
         if (getServer().getPluginManager().getPlugin("Floodgate") == null) {
-            getLogger().severe("Floodgate not found! Disabling plugin.");
+            getLogger().severe(ANSI_RED + "Floodgate not found! Disabling plugin." + ANSI_RESET);
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
@@ -31,35 +37,39 @@ public final class FloodgatePrefixGuard extends JavaPlugin implements Listener, 
         getCommand("floodgateprefixguard").setExecutor(this);
         getServer().getPluginManager().registerEvents(this, this);
         
-        getLogger().info("FloodgatePrefixGuard enabled.");
+        getLogger().info(ANSI_GREEN + "FloodgatePrefixGuard enabled." + ANSI_RESET);
 
         printStartupBanner();
 
         new UpdateChecker(this, "muzaaqi/floodgate-prefix-guard").getVersion(version -> {
             if (!this.getDescription().getVersion().equals(version)) {
-                getLogger().info("------------------------------------");
-                getLogger().info("UPDATE AVAILABLE!");
-                getLogger().info("Current version: " + this.getDescription().getVersion());
-                getLogger().info("New version: " + version);
-                getLogger().info("Download: https://github.com/muzaaqi/floodgate-prefix-guard/releases");
-                getLogger().info("------------------------------------");
+                getLogger().info(ANSI_YELLOW + "------------------------------------" + ANSI_RESET);
+                getLogger().info(ANSI_YELLOW + "UPDATE AVAILABLE!" + ANSI_RESET);
+                getLogger().info(ANSI_YELLOW + "Current version: " + this.getDescription().getVersion() + ANSI_RESET);
+                getLogger().info(ANSI_YELLOW + "New version: " + version + ANSI_RESET);
+                getLogger().info(ANSI_YELLOW + "Download: https://github.com/muzaaqi/floodgate-prefix-guard/releases" + ANSI_RESET);
+                getLogger().info(ANSI_YELLOW + "------------------------------------" + ANSI_RESET);
             } else {
-                getLogger().info("You are running the latest version.");
+                getLogger().info(ANSI_GREEN + "You are running the latest version." + ANSI_RESET);
             }
         });
     }
 
     private void printStartupBanner() {
-        getLogger().info(ChatColor.AQUA + "========================================");
-        getLogger().info(ChatColor.AQUA + "   FloodgatePrefixGuard v" + getDescription().getVersion());
-        getLogger().info(ChatColor.AQUA + "   Created by " + getDescription().getAuthors());
+        getLogger().info(ANSI_CYAN + "========================================" + ANSI_RESET);
+        getLogger().info(ANSI_CYAN + "   FloodgatePrefixGuard v" + getDescription().getVersion() + ANSI_RESET);
+        getLogger().info(ANSI_CYAN + "   Created by " + getDescription().getAuthors() + ANSI_RESET);
         getLogger().info("");
-        getLogger().info(ChatColor.GREEN + "   Status: Enabled");
-        getLogger().info(ChatColor.GREEN + "   Protection: Active");
+        getLogger().info(ANSI_GREEN + "   Status: Enabled" + ANSI_RESET);
+        getLogger().info(ANSI_GREEN + "   Protection: Active" + ANSI_RESET);
+        
         if (getConfig().getBoolean("staff-notify")) {
-            getLogger().info(ChatColor.YELLOW + "   Staff Notify: ON");
+            getLogger().info(ANSI_YELLOW + "   Staff Notify: ON" + ANSI_RESET);
+        } else {
+            getLogger().info(ANSI_RED + "   Staff Notify: OFF" + ANSI_RESET);
         }
-        getLogger().info(ChatColor.AQUA + "========================================");
+        
+        getLogger().info(ANSI_CYAN + "========================================" + ANSI_RESET);
     }
 
     @Override
