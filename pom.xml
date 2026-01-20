@@ -7,7 +7,7 @@
 
     <groupId>me.muzone</groupId>
     <artifactId>FloodgatePrefixGuard</artifactId>
-    <version>1.3.5</version>
+    <version>1.3.4</version>
     <packaging>jar</packaging>
 
     <name>FloodgatePrefixGuard</name>
