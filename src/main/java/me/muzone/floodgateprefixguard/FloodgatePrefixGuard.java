@@ -98,7 +98,7 @@ public final class FloodgatePrefixGuard extends JavaPlugin implements Listener, 
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPreLogin(PlayerPreLoginEvent event) {
+    public void onPreLogin(PlayerLoginEvent event) {
         FloodgateApi api = FloodgateApi.getInstance();
         UUID uuid = event.getPlayer().getUniqueId();
         String username = event.getPlayer().getName();
