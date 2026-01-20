@@ -32,6 +32,34 @@ public final class FloodgatePrefixGuard extends JavaPlugin implements Listener, 
         getServer().getPluginManager().registerEvents(this, this);
         
         getLogger().info("FloodgatePrefixGuard enabled.");
+
+        printStartupBanner();
+
+        new UpdateChecker(this, "muzaaqi/floodgate-prefix-guard").getVersion(version -> {
+            if (!this.getDescription().getVersion().equals(version)) {
+                getLogger().info("------------------------------------");
+                getLogger().info("UPDATE AVAILABLE!");
+                getLogger().info("Current version: " + this.getDescription().getVersion());
+                getLogger().info("New version: " + version);
+                getLogger().info("Download: https://github.com/muzaaqi/floodgate-prefix-guard/releases");
+                getLogger().info("------------------------------------");
+            } else {
+                getLogger().info("You are running the latest version.");
+            }
+        });
+    }
+
+    private void printStartupBanner() {
+        getLogger().info(ChatColor.AQUA + "========================================");
+        getLogger().info(ChatColor.AQUA + "   FloodgatePrefixGuard v" + getDescription().getVersion());
+        getLogger().info(ChatColor.AQUA + "   Created by " + getDescription().getAuthors());
+        getLogger().info("");
+        getLogger().info(ChatColor.GREEN + "   Status: Enabled");
+        getLogger().info(ChatColor.GREEN + "   Protection: Active");
+        if (getConfig().getBoolean("staff-notify")) {
+            getLogger().info(ChatColor.YELLOW + "   Staff Notify: ON");
+        }
+        getLogger().info(ChatColor.AQUA + "========================================");
     }
 
     @Override
