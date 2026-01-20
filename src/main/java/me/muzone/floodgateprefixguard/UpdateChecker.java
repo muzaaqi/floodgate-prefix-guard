@@ -36,7 +36,7 @@ public class UpdateChecker {
                 String json = jsonResult.toString();
                 if (json.contains("\"tag_name\":\"")) {
                     String version = json.split("\"tag_name\":\"")[1].split("\"")[0];
-                    version = version.replace("v", "");
+                    version = version.replace("v.", "");
                     consumer.accept(version);
                 }
             } catch (IOException exception) {
