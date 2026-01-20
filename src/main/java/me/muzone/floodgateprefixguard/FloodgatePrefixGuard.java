@@ -12,6 +12,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.floodgate.api.FloodgateApi;
 import org.geysermc.floodgate.api.player.FloodgatePlayer;
 import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.connection.GeyserConnection;
 
 import java.util.List;
 import java.util.UUID;
@@ -34,18 +35,16 @@ public final class FloodgatePrefixGuard extends JavaPlugin implements Listener, 
         }
 
         if (getServer().getPluginManager().getPlugin("Geyser-Spigot") == null) {
-            getLogger().severe("Geyser-Spigot not found! This plugin requires Geyser to function correctly.");
+            getLogger().severe("Geyser-Spigot not found! This plugin requires Geyser.");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
 
         new ConfigManager(this).setupConfig();
-
         getCommand("floodgateprefixguard").setExecutor(this);
         getServer().getPluginManager().registerEvents(this, this);
         
         getLogger().info(ANSI_GREEN + "FloodgatePrefixGuard enabled." + ANSI_RESET);
-
         printStartupBanner();
 
         new UpdateChecker(this, "muzaaqi/floodgate-prefix-guard").check(newVersion -> {
@@ -53,13 +52,11 @@ public final class FloodgatePrefixGuard extends JavaPlugin implements Listener, 
             if (!currentVersion.equalsIgnoreCase(newVersion)) {
                 getLogger().info(ANSI_YELLOW + "----------------------------------------" + ANSI_RESET);
                 getLogger().info(ANSI_YELLOW + " UPDATE AVAILABLE: v" + newVersion + ANSI_RESET);
-                
                 if (getConfig().getBoolean("auto-update")) {
                     getLogger().info(ANSI_GREEN + " Auto-Update enabled. Downloading update..." + ANSI_RESET);
                     new UpdateChecker(this, "muzaaqi/floodgate-prefix-guard").download(newVersion);
                 } else {
                     getLogger().info(ANSI_CYAN + " Manual Download: https://github.com/muzaaqi/floodgate-prefix-guard/releases" + ANSI_RESET);
-                    getLogger().info(ANSI_CYAN + " Set 'auto-update: true' in config for automatic updates." + ANSI_RESET);
                 }
                 getLogger().info(ANSI_YELLOW + "----------------------------------------" + ANSI_RESET);
             }
@@ -69,17 +66,7 @@ public final class FloodgatePrefixGuard extends JavaPlugin implements Listener, 
     private void printStartupBanner() {
         getLogger().info(ANSI_CYAN + "========================================" + ANSI_RESET);
         getLogger().info(ANSI_CYAN + "   FloodgatePrefixGuard v" + getDescription().getVersion() + ANSI_RESET);
-        getLogger().info(ANSI_CYAN + "   Created by " + getDescription().getAuthors() + ANSI_RESET);
-        getLogger().info("");
-        getLogger().info(ANSI_GREEN + "   Status: Enabled" + ANSI_RESET);
-        getLogger().info(ANSI_GREEN + "   Protection: Active" + ANSI_RESET);
-        
-        if (getConfig().getBoolean("staff-notify")) {
-            getLogger().info(ANSI_YELLOW + "   Staff Notify: ON" + ANSI_RESET);
-        } else {
-            getLogger().info(ANSI_RED + "   Staff Notify: OFF" + ANSI_RESET);
-        }
-        
+        getLogger().info(ANSI_GREEN + "   Protection: Active (UUID + Name Fallback)" + ANSI_RESET);
         getLogger().info(ANSI_CYAN + "========================================" + ANSI_RESET);
     }
 
@@ -100,39 +87,54 @@ public final class FloodgatePrefixGuard extends JavaPlugin implements Listener, 
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPreLogin(PlayerLoginEvent event) {
-        FloodgateApi api = FloodgateApi.getInstance();
+        FloodgateApi floodgateApi = FloodgateApi.getInstance();
+        GeyserApi geyserApi = GeyserApi.api();
+        
         UUID uuid = event.getPlayer().getUniqueId();
         String username = event.getPlayer().getName();
 
-        FloodgatePlayer fPlayer = api.getPlayer(uuid);
-        boolean isBedrock = (fPlayer != null);
+        boolean isBedrock = false;
+        String detectionSource = "None";
+
+        if (floodgateApi.isFloodgatePlayer(uuid)) {
+            isBedrock = true;
+            detectionSource = "FloodgateAPI";
+        }
+        
+        if (!isBedrock && geyserApi.isBedrockPlayer(uuid)) {
+            isBedrock = true;
+            detectionSource = "GeyserAPI (UUID)";
+        }
 
         if (!isBedrock) {
-            try {
-                if (GeyserApi.api().isBedrockPlayer(uuid)) {
+            for (GeyserConnection conn : geyserApi.onlineConnections()) {
+                if (conn.javaName().equals(username)) {
                     isBedrock = true;
-                    getLogger().warning("[Audit] Player " + username + " detected via Geyser API (Floodgate sync failed).");
+                    detectionSource = "GeyserAPI (Name Match)";
+                    break;
                 }
-            } catch (Exception e) {
             }
         }
 
         if (!isBedrock) {
-            getLogger().info("[Log] Login Java: " + username + " (UUID: " + uuid + ")");
+            getLogger().info("[Log] Java Login: " + username + " (UUID: " + uuid + ")");
             return;
         }
 
+        getLogger().info("[Audit] Bedrock detected via " + detectionSource + ": " + username);
+
+        FloodgatePlayer fPlayer = floodgateApi.getPlayer(uuid);
         if (fPlayer != null && getConfig().getBoolean("allow-linked-bypass") && fPlayer.getLinkedPlayer() != null) {
-            getLogger().info("[Log] Login Bedrock (Linked): " + username + " -> Bypass Check.");
+            getLogger().info("[Log] Bedrock Login (Linked): " + username + " -> Bypass Check.");
             return;
         }
 
         String requiredPrefix = getConfig().getString("required-prefix", ".");
 
         if (username.startsWith(requiredPrefix)) {
-            getLogger().info("[Log] Login Bedrock (Valid): " + username + " -> Safe prefix.");
+            getLogger().info("[Log] Bedrock Login (Valid): " + username + " -> Safe prefix.");
         } else {
-            getLogger().warning("[BLOCK] Login Bedrock (Invalid): " + username + " -> Missing prefix! Kicking player...");
+            getLogger().warning("[BLOCK] Bedrock Login (Invalid): " + username + " -> Missing prefix! Detected via " + detectionSource);
 
             List<String> msgList = getConfig().getStringList("kick-message");
             String kickReason = msgList.stream()
